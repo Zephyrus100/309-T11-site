@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext(null);
 
 // TODO: get the BACKEND_URL.
-const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://localhost:3000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://localhost:3000";
 
 /*
  * This provider should export a `user` context state that is 
@@ -27,10 +27,10 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
         }
 
-        fetch(`${VITE_BACKEND_URL}/user/me`, {method: "GET", headers: {Authorization: `Bearer ${token}`}})
+        fetch(`${BACKEND_URL}/user/me`, {method: "GET", headers: {Authorization: `Bearer ${token}`}})
         .then(res => {
             if (!res.ok) {
-                throw new Error("erorr")
+                return data.message;
             }
             return res.json();
         })
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
      */
     const login = async (username, password) => {
         // TODO: complete me
-        const res = await fetch(`${VITE_BACKEND_URL}/login`, {
+        const res = await fetch(`${BACKEND_URL}/login`, {
             method: "POST", 
             headers: {"Content-Type": "application/json"}, 
             body: JSON.stringify({ username, password })
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem("token", data.token);
 
-        const user = await fetch(`${VITE_BACKEND_URL}/user/me`, {
+        const user = await fetch(`${BACKEND_URL}/user/me`, {
             headers: {Authorization: `Bearer ${data.token}`}
         });
 
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
      */
     const register = async (userData) => {
         // TODO: complete me
-        const res = await fetch(`${VITE_BACKEND_URL}/register`, {
+        const res = await fetch(`${BACKEND_URL}/register`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(userData)
@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }) => {
             return data.message;
         }
 
-        navigate("/")
+        navigate("/success")
     };
 
     return (
