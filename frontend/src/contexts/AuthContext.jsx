@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext(null);
 
 // TODO: get the BACKEND_URL.
-const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://localhost:3000";
 
 /*
  * This provider should export a `user` context state that is 
@@ -18,25 +18,27 @@ const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3
 export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
     // const user = null; // TODO: Modify me.
-    const [user, setUser] = useState(null)
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
         // TODO: complete me, by retriving token from localStorage and make an api call to GET /user/me.
         const token = localStorage.getItem("token");
         if (!token) {
             setUser(null);
-            return;
         }
 
-        fetch(`${VITE_BACKEND_URL}/user/me`, {method: "GET", headers: {"Authorization": `Bearer ${token}`}})
-        .then(res => res.json())
-        .then(json => {
-            if (!json) {
-                localStorage.removeItem("token");
-                setUser(null);
-                return;
+        fetch(`${VITE_BACKEND_URL}/user/me`, {method: "GET", headers: {Authorization: `Bearer ${token}`}})
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("erorr")
             }
+            return res.json();
+        })
+        .then(json => {
             setUser(json.user)
+        }).catch(() => {
+            localStorage.removeItem("token");
+            setUser(null);
         });
     }, [])
 
@@ -49,7 +51,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("token");
         setUser(null);
         navigate("/");
-        return;
     };
 
     /**
@@ -73,19 +74,19 @@ export const AuthProvider = ({ children }) => {
             return data.message;
         }
 
-        const userRes = await fetch(`${VITE_BACKEND_URL}/user/me`, {
-            headers: {"Authorization": `Bearer ${data.token}`}
+        localStorage.setItem("token", data.token);
+
+        const user = await fetch(`${VITE_BACKEND_URL}/user/me`, {
+            headers: {Authorization: `Bearer ${data.token}`}
         });
 
-        const userData = await userRes.json();
-        if (!userRes.ok) {
+        const userData = await user.json();
+        if (!user.ok) {
             return userData.message;
         }
 
-        localStorage.setItem("token", data.token);
         setUser(userData.user);
         navigate("/profile");
-        return;
     };
 
     /**
@@ -109,7 +110,6 @@ export const AuthProvider = ({ children }) => {
         }
 
         navigate("/")
-        return;
     };
 
     return (
