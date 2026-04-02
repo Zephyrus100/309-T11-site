@@ -22,24 +22,36 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         // TODO: complete me, by retriving token from localStorage and make an api call to GET /user/me.
-        const token = localStorage.getItem("token");
-        if (!token) {
+        const fetchUser = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
             setUser(null);
-        }
-
-        fetch(`${BACKEND_URL}/user/me`, {method: "GET", headers: {Authorization: `Bearer ${token}`}})
-        .then(res => {
-            if (!res.ok) {
-                return data.message;
+            return;
             }
-            return res.json();
-        })
-        .then(json => {
-            setUser(json.user)
-        }).catch(() => {
-            localStorage.removeItem("token");
-            setUser(null);
-        });
+            try {
+                const res = await fetch(`${BACKEND_URL}/user/me`, {
+                method: "GET", 
+                headers: {Authorization: `Bearer ${token}`}
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    localStorage.removeItem("token");
+                    setUser(null);
+                    return;
+                }
+                setUser(data.user);
+                return;
+            } catch {
+                localStorage.removeItem("token");
+                    setUser(null);
+                    return; 
+            }
+            fetchUser();
+
+        }
+        
+
     }, [])
 
     /*
